@@ -2,6 +2,16 @@ mod complex;
 mod serial;
 mod simd;
 
+#[derive(Clone, Copy)]
+struct Domain {
+    x0: f32,
+    x1: f32,
+    y0: f32,
+    y1: f32,
+    width: usize,
+    height: usize,
+}
+
 fn tsc() -> u64 {
     let n: u64;
     unsafe {
@@ -24,78 +34,70 @@ fn save(buf: &[i32], width: usize, height: usize, filename: &str) {
     println!("Wrote '{}'", filename);
 }
 
+type Mandelbrot = fn(f32, f32, f32, f32, i32, i32, i32, &mut [i32]);
+
+fn benchmark(
+    fct: Mandelbrot,
+    name: &str,
+    d: Domain,
+    count: i32,
+    iterations: usize,
+    mut output: &mut [i32],
+) {
+    for _ in 0..iterations {
+        let start = tsc();
+        fct(
+            d.x0,
+            d.y0,
+            d.x1,
+            d.y1,
+            d.width as i32,
+            d.height as i32,
+            count,
+            &mut output,
+        );
+        let end = tsc();
+        println!(
+            "Time of {} run: {: >width$.3} megacycles",
+            name,
+            (end - start) as f32 / (1024.0 * 1024.0),
+            width = 40 - name.len()
+        );
+    }
+
+    let filename = format!("mandelbrot-{}.ppm", name);
+    save(&output, d.width, d.height, &filename[..]);
+}
+
 fn main() {
-    let width: usize = 768;
-    let height: usize = 512;
-    let x0: f32 = -2.0;
-    let x1: f32 = 1.0;
-    let y0: f32 = -1.0;
-    let y1: f32 = 1.0;
+    let d = Domain {
+        x0: -2.0,
+        x1: 1.0,
+        y0: -1.0,
+        y1: 1.0,
+        width: 768,
+        height: 512,
+    };
     let count: i32 = 256;
     let iterations = 3;
 
-    let mut buf = vec![0i32; width * height];
+    let mut buf = vec![0i32; d.width * d.height];
 
-    for _ in 0..iterations {
-        let start = tsc();
-        serial::mandelbrot(
-            x0,
-            y0,
-            x1,
-            y1,
-            width as i32,
-            height as i32,
-            count,
-            &mut buf[..],
-        );
-        let end = tsc();
-        println!(
-            "Time: {} megacycles",
-            (end - start) as f32 / (1024.0 * 1024.0)
-        );
-    }
-
-    save(&buf[..], width, height, "mandelbrot.ppm");
-
-    for _ in 0..iterations {
-        let start = tsc();
-        complex::mandelbrot(
-            x0,
-            y0,
-            x1,
-            y1,
-            width as i32,
-            height as i32,
-            count,
-            &mut buf[..],
-        );
-        let end = tsc();
-        println!(
-            "Time using complex: {} megacycles",
-            (end - start) as f32 / (1024.0 * 1024.0)
-        );
-    }
-
-    save(&buf[..], width, height, "mandelbrot_complex.ppm");
-
-    for _ in 0..iterations {
-        let start = tsc();
-        simd::mandelbrot(
-            x0,
-            y0,
-            x1,
-            y1,
-            width as i32,
-            height as i32,
-            count,
-            &mut buf[..],
-        );
-        let end = tsc();
-        println!(
-            "Time using simd: {} megacycles",
-            (end - start) as f32 / (1024.0 * 1024.0)
-        );
-    }
-
-    save(&buf[..], width, height, "mandelbrot_simd.ppm");
+    benchmark(
+        serial::mandelbrot,
+        "serial",
+        d,
+        count,
+        iterations,
+        &mut buf[..],
+    );
+    benchmark(
+        complex::mandelbrot,
+        "complex",
+        d,
+        count,
+        iterations,
+        &mut buf[..],
+    );
+    benchmark(simd::mandelbrot, "simd", d, count, iterations, &mut buf[..]);
 }
