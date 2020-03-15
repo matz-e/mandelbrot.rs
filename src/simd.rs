@@ -38,9 +38,9 @@ pub fn mandelbrot(
 
     for j in 0..height {
         let y = y0 + j as f32 * dy;
-        for (i, chunk) in xs.chunks_exact(8).enumerate() {
+        for (i, chunk) in xs.chunks_exact(f32x8::lanes()).enumerate() {
             let res = kernel(f32x8::from_slice_unaligned(chunk), f32x8::splat(y), count);
-            let offset = (j * width) as usize + i * 8;
+            let offset = (j * width) as usize + i * f32x8::lanes();
             for n in 0..f32x8::lanes() {
                 output[offset + n] = res.extract(n);
             }
