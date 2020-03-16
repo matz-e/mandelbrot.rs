@@ -8,15 +8,16 @@ fn kernel(re: f32x8, im: f32x8, count: i32) -> i32x8 {
     let mut z_re = re;
     let mut z_im = im;
     for _i in 0..count {
-        let m = (z_re * z_re + z_im * z_im).le(r2);
-        counts = m.select(counts + 1, counts);
-        let new_re = z_re * z_re - z_im * z_im + re;
-        let new_im = 2.0 * z_re * z_im + im;
-        z_re = new_re;
-        z_im = new_im;
+        let re_sqr = z_re * z_re;
+        let im_sqr = z_im * z_im;
+        let m = (re_sqr + im_sqr).le(r2);
         if m.none() {
             break;
         }
+        counts = m.select(counts + 1, counts);
+        let re_im = z_re * z_im;
+        z_re = re_sqr - im_sqr + re;
+        z_im = re_im + re_im + im;
     }
     counts
 }
