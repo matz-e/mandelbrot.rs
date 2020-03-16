@@ -2,12 +2,14 @@ fn kernel(re: f32, im: f32, count: i32) -> i32 {
     let mut new_re = re;
     let mut new_im = im;
     for i in 0..count {
-        if new_re * new_re + new_im * new_im > 4.0 {
+        let re_sqr = new_re * new_re;
+        let im_sqr = new_im * new_im;
+        if re_sqr + im_sqr > 4.0 {
             return i;
         }
-        let tmp = new_re;
-        new_re = new_re * new_re - new_im * new_im + re;
-        new_im = 2.0 * tmp * new_im + im;
+        let tmp = new_re * new_im;
+        new_re = re_sqr - im_sqr + re;
+        new_im = tmp + tmp + im;
     }
     count
 }
