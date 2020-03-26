@@ -1,5 +1,6 @@
 extern crate packed_simd;
 
+use crate::config::Domain;
 use packed_simd::*;
 
 fn kernel(re: f32x8, im: f32x8, count: i32) -> i32x8 {
@@ -22,26 +23,17 @@ fn kernel(re: f32x8, im: f32x8, count: i32) -> i32x8 {
     counts
 }
 
-pub fn mandelbrot(
-    x0: f32,
-    y0: f32,
-    x1: f32,
-    y1: f32,
-    width: i32,
-    height: i32,
-    count: i32,
-    output: &mut [i32],
-) {
-    let dx = (x1 - x0) / width as f32;
-    let dy = (y1 - y0) / height as f32;
+pub fn mandelbrot(d: Domain, count: i32, output: &mut [i32]) {
+    let dx = (d.x1 - d.x0) / d.width as f32;
+    let dy = (d.y1 - d.y0) / d.height as f32;
 
-    let xs: Vec<_> = (0..width).map(|i| x0 + i as f32 * dx).collect();
+    let xs: Vec<_> = (0..d.width).map(|i| d.x0 + i as f32 * dx).collect();
 
-    for j in 0..height {
-        let y = y0 + j as f32 * dy;
+    for j in 0..d.height {
+        let y = d.y0 + j as f32 * dy;
         for (i, chunk) in xs.chunks_exact(f32x8::lanes()).enumerate() {
             let res = kernel(f32x8::from_slice_unaligned(chunk), f32x8::splat(y), count);
-            let offset = (j * width) as usize + i * f32x8::lanes();
+            let offset = (j * d.width) as usize + i * f32x8::lanes();
             for n in 0..f32x8::lanes() {
                 output[offset + n] = res.extract(n);
             }

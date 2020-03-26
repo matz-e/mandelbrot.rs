@@ -1,16 +1,9 @@
 mod complex;
+mod config;
 mod serial;
 mod simd;
 
-#[derive(Clone, Copy)]
-struct Domain {
-    x0: f32,
-    x1: f32,
-    y0: f32,
-    y1: f32,
-    width: usize,
-    height: usize,
-}
+use config::Domain;
 
 fn tsc() -> u64 {
     let n: u64;
@@ -34,7 +27,7 @@ fn save(buf: &[i32], width: usize, height: usize, filename: &str) {
     println!("Wrote '{}'", filename);
 }
 
-type Mandelbrot = fn(f32, f32, f32, f32, i32, i32, i32, &mut [i32]);
+type Mandelbrot = fn(Domain, i32, &mut [i32]);
 
 fn benchmark(
     fct: Mandelbrot,
@@ -46,16 +39,7 @@ fn benchmark(
 ) {
     for _ in 0..iterations {
         let start = tsc();
-        fct(
-            d.x0,
-            d.y0,
-            d.x1,
-            d.y1,
-            d.width as i32,
-            d.height as i32,
-            count,
-            &mut output,
-        );
+        fct(d, count, &mut output);
         let end = tsc();
         println!(
             "Time of {} run: {: >width$.3} megacycles",
