@@ -36,3 +36,18 @@ pub fn mandelbrot(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn kernel_test() {
+        let n = kernel(0.0, 0.0, 200);
+        assert_eq!(n, 200);
+        let o = kernel(2.0, 0.0, 200);
+        assert_eq!(o, 1);
+        let p = kernel(1.0, 0.0, 200);
+        assert_eq!(p, 2);
+    }
+}

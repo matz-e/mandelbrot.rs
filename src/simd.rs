@@ -48,3 +48,18 @@ pub fn mandelbrot(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn kernel_test() {
+        let n = kernel(f32x8::splat(0.0), f32x8::splat(0.0), 200);
+        assert_eq!(n.extract(0), 200);
+        let o = kernel(f32x8::splat(2.0), f32x8::splat(0.0), 200);
+        assert_eq!(o.extract(0), 1);
+        let p = kernel(f32x8::splat(1.0), f32x8::splat(0.0), 200);
+        assert_eq!(p.extract(0), 2);
+    }
+}
