@@ -1,5 +1,10 @@
+#[cfg(feature = "gpu")]
+#[macro_use] extern crate rustacuda;
+
 mod complex;
 mod config;
+#[cfg(feature = "gpu")]
+mod cuda;
 mod serial;
 mod simd;
 
@@ -84,4 +89,6 @@ fn main() {
         &mut buf[..],
     );
     benchmark(simd::mandelbrot, "simd", d, count, iterations, &mut buf[..]);
+    #[cfg(feature = "gpu")]
+    benchmark(cuda::mandelbrot, "cuda", d, count, iterations, &mut buf[..]);
 }
