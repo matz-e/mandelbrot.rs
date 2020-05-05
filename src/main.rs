@@ -67,7 +67,7 @@ fn main() {
         width: 768,
         height: 512,
     };
-    let count: i32 = 256;
+    let count: i32 = 256 * 64;
     let iterations = 3;
 
     let mut buf = vec![0i32; d.width * d.height];

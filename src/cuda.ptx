@@ -7,85 +7,70 @@
 //
 
 .version 6.5
-.target sm_30
+.target sm_61
 .address_size 64
 
 	// .globl	kernel
 
 .visible .entry kernel(
 	.param .u64 kernel_param_0,
-	.param .u64 kernel_param_1,
-	.param .u64 kernel_param_2,
-	.param .u32 kernel_param_3,
-	.param .u32 kernel_param_4
+	.param .f32 kernel_param_1,
+	.param .f32 kernel_param_2,
+	.param .f32 kernel_param_3,
+	.param .f32 kernel_param_4,
+	.param .u32 kernel_param_5,
+	.param .u32 kernel_param_6
 )
 {
-	.reg .pred 	%p<9>;
-	.reg .f32 	%f<24>;
-	.reg .b32 	%r<16>;
-	.reg .b64 	%rd<11>;
+	.reg .pred 	%p<4>;
+	.reg .f32 	%f<21>;
+	.reg .b32 	%r<14>;
+	.reg .b64 	%rd<5>;
 
 
-	ld.param.u64 	%rd7, [kernel_param_0];
-	ld.param.u64 	%rd8, [kernel_param_1];
-	ld.param.u64 	%rd9, [kernel_param_2];
-	ld.param.u32 	%r8, [kernel_param_3];
-	ld.param.u32 	%r9, [kernel_param_4];
-	mov.u32 	%r1, %ntid.x;
-	mov.u32 	%r10, %ctaid.x;
-	mov.u32 	%r11, %tid.x;
-	mad.lo.s32 	%r14, %r1, %r10, %r11;
-	setp.ge.s32	%p1, %r14, %r8;
-	@%p1 bra 	BB0_5;
+	ld.param.u64 	%rd1, [kernel_param_0];
+	ld.param.f32 	%f9, [kernel_param_1];
+	ld.param.f32 	%f10, [kernel_param_2];
+	ld.param.f32 	%f11, [kernel_param_3];
+	ld.param.f32 	%f12, [kernel_param_4];
+	ld.param.u32 	%r5, [kernel_param_5];
+	ld.param.u32 	%r6, [kernel_param_6];
+	mov.u32 	%r1, %ctaid.x;
+	cvt.rn.f32.u32	%f13, %r1;
+	fma.rn.f32 	%f1, %f13, %f10, %f9;
+	mov.u32 	%r9, %ctaid.y;
+	cvt.rn.f32.u32	%f14, %r9;
+	fma.rn.f32 	%f2, %f14, %f12, %f11;
+	mov.u32 	%r13, 0;
+	setp.lt.s32	%p1, %r6, 1;
+	@%p1 bra 	BB0_4;
 
-	cvta.to.global.u64 	%rd1, %rd9;
-	cvta.to.global.u64 	%rd2, %rd8;
-	cvta.to.global.u64 	%rd3, %rd7;
-	mov.u32 	%r12, %nctaid.x;
-	mul.lo.s32 	%r3, %r12, %r1;
+	mov.f32 	%f19, %f2;
+	mov.f32 	%f20, %f1;
 
 BB0_2:
-	mul.wide.s32 	%rd10, %r14, 4;
-	add.s64 	%rd4, %rd3, %rd10;
-	add.s64 	%rd5, %rd2, %rd10;
-	ld.global.f32 	%f23, [%rd4];
-	mul.f32 	%f21, %f23, %f23;
-	ld.global.f32 	%f22, [%rd5];
-	mul.f32 	%f20, %f22, %f22;
-	add.s64 	%rd6, %rd1, %rd10;
-	mov.u32 	%r15, 0;
-	st.global.u32 	[%rd6], %r15;
-	add.f32 	%f13, %f21, %f20;
-	setp.gtu.f32	%p2, %f13, 0f40800000;
-	setp.lt.s32	%p3, %r9, 1;
-	or.pred  	%p4, %p3, %p2;
-	@%p4 bra 	BB0_4;
+	mul.f32 	%f5, %f19, %f19;
+	mul.f32 	%f6, %f20, %f20;
+	add.f32 	%f15, %f5, %f6;
+	setp.gtu.f32	%p2, %f15, 0f40800000;
+	@%p2 bra 	BB0_4;
 
-BB0_3:
-	ld.global.f32 	%f14, [%rd4];
-	sub.f32 	%f15, %f21, %f20;
-	add.f32 	%f9, %f15, %f14;
-	mul.f32 	%f16, %f23, %f22;
-	fma.rn.f32 	%f17, %f23, %f22, %f16;
-	ld.global.f32 	%f18, [%rd5];
-	add.f32 	%f22, %f17, %f18;
-	mul.f32 	%f20, %f22, %f22;
-	mul.f32 	%f21, %f9, %f9;
-	add.s32 	%r15, %r15, 1;
-	st.global.u32 	[%rd6], %r15;
-	setp.lt.s32	%p5, %r15, %r9;
-	add.f32 	%f19, %f21, %f20;
-	setp.le.f32	%p6, %f19, 0f40800000;
-	and.pred  	%p7, %p5, %p6;
-	mov.f32 	%f23, %f9;
-	@%p7 bra 	BB0_3;
+	mul.f32 	%f16, %f19, %f20;
+	sub.f32 	%f17, %f6, %f5;
+	add.f32 	%f7, %f1, %f17;
+	fma.rn.f32 	%f18, %f19, %f20, %f16;
+	add.f32 	%f19, %f2, %f18;
+	add.s32 	%r13, %r13, 1;
+	setp.lt.s32	%p3, %r13, %r6;
+	mov.f32 	%f20, %f7;
+	@%p3 bra 	BB0_2;
 
 BB0_4:
-	add.s32 	%r14, %r3, %r14;
-	setp.lt.s32	%p8, %r14, %r8;
-	@%p8 bra 	BB0_2;
-
-BB0_5:
+	mad.lo.s32 	%r11, %r9, %r5, %r1;
+	cvta.to.global.u64 	%rd2, %rd1;
+	mul.wide.u32 	%rd3, %r11, 4;
+	add.s64 	%rd4, %rd2, %rd3;
+	st.global.u32 	[%rd4], %r13;
 	ret;
 }
 

@@ -1,16 +1,18 @@
-extern "C" __global__ void kernel(const float *re, const float *im, int *out, int size, int count) {
-    for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < size; i += blockDim.x * gridDim.x) {
-        float new_re = re[i];
-        float new_im = im[i];
-        float re_sqr = new_re * new_re;
-        float im_sqr = new_im * new_im;
-        out[i] = 0;
-        for (; out[i] < count && re_sqr + im_sqr <= 4.0; out[i] += 1) {
-            float tmp = new_re * new_im;
-            new_re = re_sqr - im_sqr + re[i];
-            new_im = tmp + tmp + im[i];
-            re_sqr = new_re * new_re;
-            im_sqr = new_im * new_im;
-        }
+inline __device__ int iterate(float re0, float im0, int count) {
+    float re = re0;
+    float im = im0;
+    int i = 0;
+    for (; i < count && re * re + im * im <= 4.0; ++i) {
+        float tmp = re * im;
+        re = re * re - im * im + re0;
+        im = tmp + tmp + im0;
     }
+    return i;
+}
+extern "C" __global__ void kernel(
+    int *out, float x0, float dx, float y0, float dy, int width, int count
+) {
+    float re0 = x0 + blockIdx.x * dx;
+    float im0 = y0 + blockIdx.y * dy;
+    out[blockIdx.y * width + blockIdx.x] = iterate(re0, im0, count);
 }
