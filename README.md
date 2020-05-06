@@ -3,9 +3,10 @@
 A simplistic Mandelbrot implementation in Rust, to compare with the ISPC
 benchmarks (and practice some SIMD).
 
-Current runtimes of the Rust version, on a Intel® Core™ i3-6100:
+Current runtimes of the Rust version, on a Intel® Core™ i3-6100 and a
+NVIDIA Geforce GTX 1050 Ti:
 ```
-❯ cargo +nightly run --release
+❯ cargo +nightly run --release --features gpu
     Finished release [optimized] target(s) in 0.03s
      Running `target/release/mandelbrot`
 Time of serial run:                            349.730 megacycles
@@ -20,6 +21,10 @@ Time of simd run:                               53.078 megacycles
 Time of simd run:                               53.242 megacycles
 Time of simd run:                               52.124 megacycles
 Wrote 'mandelbrot-simd.ppm'
+Time of cuda run:                                6.194 megacycles
+Time of cuda run:                                2.591 megacycles
+Time of cuda run:                                2.408 megacycles
+Wrote 'mandelbrot-cuda.ppm'
 ```
 
 Compared to runtimes with ISPC:
