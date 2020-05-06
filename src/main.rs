@@ -1,5 +1,6 @@
 #[cfg(feature = "gpu")]
-#[macro_use] extern crate rustacuda;
+#[macro_use]
+extern crate rustacuda;
 
 mod complex;
 mod config;
@@ -67,7 +68,7 @@ fn main() {
         width: 768,
         height: 512,
     };
-    let count: i32 = 256 * 64;
+    let count: i32 = 256;
     let iterations = 3;
 
     let mut buf = vec![0i32; d.width * d.height];
@@ -90,5 +91,8 @@ fn main() {
     );
     benchmark(simd::mandelbrot, "simd", d, count, iterations, &mut buf[..]);
     #[cfg(feature = "gpu")]
-    benchmark(cuda::mandelbrot, "cuda", d, count, iterations, &mut buf[..]);
+    {
+        let _c = cuda::init().unwrap();
+        benchmark(cuda::mandelbrot, "cuda", d, count, iterations, &mut buf[..]);
+    }
 }

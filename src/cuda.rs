@@ -4,13 +4,7 @@ use rustacuda::prelude::*;
 use std::error::Error;
 use std::ffi::CString;
 
-fn launch_cuda(d: Domain, output: &mut [i32], count: i32,) -> Result<(), Box<dyn Error>> {
-    rustacuda::init(CudaFlags::empty())?;
-
-    let device = Device::get_device(0)?;
-    let _context =
-        Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device)?;
-
+fn launch_cuda(d: Domain, output: &mut [i32], count: i32) -> Result<(), Box<dyn Error>> {
     let module_data = CString::new(include_str!("cuda.ptx"))?;
     let module = Module::load_from_string(&module_data)?;
 
@@ -25,7 +19,7 @@ fn launch_cuda(d: Domain, output: &mut [i32], count: i32,) -> Result<(), Box<dyn
         result = DeviceBuffer::zeroed(output.len())?;
 
         // <<<blocks, threads, shared memory, stream>>>
-        launch!(module.kernel<<<(d.width as u32, d.height as u32), 1, 0, stream>>>(
+        launch!(module.kernel<<<((d.width / 16) as u32, (d.height / 16) as u32), (16, 16), 0, stream>>>(
             result.as_device_ptr(),
             d.x0,
             dx,
@@ -40,6 +34,16 @@ fn launch_cuda(d: Domain, output: &mut [i32], count: i32,) -> Result<(), Box<dyn
     result.copy_to(output)?;
 
     Ok(())
+}
+
+pub fn init() -> Result<Context, Box<dyn Error>> {
+    rustacuda::init(CudaFlags::empty())?;
+
+    let device = Device::get_device(0)?;
+    let context =
+        Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device)?;
+
+    Ok(context)
 }
 
 pub fn mandelbrot(d: Domain, count: i32, output: &mut [i32]) {

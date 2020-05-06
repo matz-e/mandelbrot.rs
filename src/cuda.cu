@@ -1,13 +1,15 @@
 inline __device__ int iterate(float re0, float im0, int count) {
     float re = re0;
     float im = im0;
-    int i = 0;
-    for (; i < count && re * re + im * im <= 4.0; ++i) {
+    for (int i = 0; i < count; ++i) {
+        if (re * re + im * im > 4.0) {
+            return i;
+        }
         float tmp = re * im;
         re = re * re - im * im + re0;
         im = tmp + tmp + im0;
     }
-    return i;
+    return count;
 }
 extern "C" __global__ void kernel(
     int *out, float x0, float dx, float y0, float dy, int width, int count
