@@ -11,11 +11,11 @@ fn kernel(re: f32x8, im: f32x8, count: i32) -> i32x8 {
     for _i in 0..count {
         let re_sqr = z_re * z_re;
         let im_sqr = z_im * z_im;
-        let m = (re_sqr + im_sqr).le(r2);
-        if m.none() {
-            break;
+        let mask = (re_sqr + im_sqr).le(r2);
+        if mask.none() {
+            return counts;
         }
-        counts = m.select(counts + 1, counts);
+        counts = mask.select(counts + 1, counts);
         let re_im = z_re * z_im;
         z_re = re_sqr - im_sqr + re;
         z_im = re_im + re_im + im;
