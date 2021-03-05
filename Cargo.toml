@@ -10,7 +10,7 @@ gpu = ["rustacuda"]
 [dependencies]
 image = "*"
 num-complex = "*"
-packed_simd = "*"
+packed_simd = { version = "0.3.4", package = "packed_simd_2" }
 
 [dependencies.rustacuda]
 version = "0.1"
